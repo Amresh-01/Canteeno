@@ -3,7 +3,7 @@ import "./SpecialDishOfTheDay.css";
 import { StoreContext } from "../../context/StoreContext";
 import FoodItem from "../FoodItem/FoodItem";
 
-const SpecialDishOfTheDay = () => {
+const SpecialDishofTheDay = () => {
   const { food_list } = useContext(StoreContext);
   const specialDish = food_list.find(
     (item) => item.isSpecialToday === true || item.isSpecialToday === "true"
@@ -52,4 +52,4 @@ const SpecialDishOfTheDay = () => {
   );
 };
 
-export default SpecialDishOfTheDay;
+export default SpecialDishofTheDay;
