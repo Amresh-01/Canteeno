@@ -1,4 +1,8 @@
 import { createContext, useEffect, useState } from "react";
+import { toast } from "react-toastify";
+import { food_list as localFoodList } from '../assets/frontend_assets/assets';
+import { fetchRecommendations } from '../config/recommendationApi';
+import { sendChatMessage, checkChatApiStatus } from '../config/chatApi';
 import axios from "axios";
 import { toast } from "react-toastify"; // <-- Added import
 
@@ -8,6 +12,7 @@ const StoreContextProvider = (props) => {
   const url = "https://ajay-cafe-1.onrender.com"; // <-- Declared once
   const [foodList, setFoodList] = useState([]); // <-- Declared once
   const [cartItems, setCartItems] = useState({});
+  const url = "https://ajay-cafe-1.onrender.com";
   const [token, setToken] = useState("");
   const [userType, setUserType] = useState("user"); // "user" or "admin"
 
@@ -150,21 +155,22 @@ const StoreContextProvider = (props) => {
     // Robust local state update from 'main'
     setCartItems((prev) => {
       const currentItem = prev[itemId];
-      if (!currentItem) return prev; // Not in cart
-
-      const currentQuantity = getCartQuantity(itemId); // Use helper
-
-      if (currentQuantity <= 1) {
-        // Remove item from cart
-        const { [itemId]: removed, ...rest } = prev;
-        return rest;
+      if (!currentItem) return prev;
+      
+      if (typeof currentItem === 'number') {
+        const newQuantity = currentItem - 1;
+        if (newQuantity <= 0) {
+          const { [itemId]: removed, ...rest } = prev;
+          return rest;
+        }
+        return { ...prev, [itemId]: newQuantity };
       } else {
-        // Decrement quantity (handles both formats)
-        const currentNotes = getCartNotes(itemId); // Use helper
-        return {
-          ...prev,
-          [itemId]: { quantity: currentQuantity - 1, notes: currentNotes },
-        };
+        const newQuantity = currentItem.quantity - 1;
+        if (newQuantity <= 0) {
+          const { [itemId]: removed, ...rest } = prev;
+          return rest;
+        }
+        return { ...prev, [itemId]: { ...currentItem, quantity: newQuantity } };
       }
     });
 
@@ -214,7 +220,41 @@ const StoreContextProvider = (props) => {
     return totalItems;
   };
 
-  // --- Final Context Value (Combined) ---
+  
+  const fetchFoodList = async () => {
+    const response = await axios.get(url + "/api/food/list");
+    if (response.data.success) {
+      setFoodList(response.data.data);
+    } else {
+      alert("Error! Products are not fetching..");
+    }
+  };
+
+  const loadCardData = async (token) => {
+    try {
+      const response = await axios.post(
+        url + "/api/cart/get",
+        {},
+        { headers: { token } }
+      );
+      setCartItems(response.data.cartData || {});
+    } catch (error) {
+      console.error("Failed to load cart data", error);
+      setCartItems({});
+    }
+  };
+
+  useEffect(() => {
+    async function loadData() {
+      if (localStorage.getItem("token")) {
+        setToken(localStorage.getItem("token"));
+        const savedUserType = localStorage.getItem("userType") || "user";
+        setUserType(savedUserType);
+        await loadCardData(localStorage.getItem("token"));
+      }
+    }
+    loadData();
+  }, []);
 
   const contextValue = {
     url,
@@ -225,6 +265,15 @@ const StoreContextProvider = (props) => {
     removeFromCart,
     getCartQuantity,
     getCartNotes,
+    updateCartNotes,
+    url,
+    token,
+    setToken,
+    userType,
+    setUserType,
+    fetchRecommendations,
+    sendChatMessage,
+    checkChatApiStatus,
     updateCartNotes, // From main
     getTotalCartAmount, // From VAIBHAVSHUKLA
     getTotalCartItems, // From VAIBHAVSHUKLA

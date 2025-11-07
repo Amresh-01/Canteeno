@@ -29,10 +29,8 @@ const FoodItem = ({
 
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [notes, setNotes] = useState("");
-
-  // CHANGED: Simplified this logic.
-  // Your original logic (originalPrice && discount > 0 ? price : price)
-  // would always just result in 'price'.
+  
+  // Simplified: displayPrice is always price (the ternary was redundant)
   const displayPrice = price;
   const showOriginalPrice = originalPrice && originalPrice > price;
 
@@ -41,11 +39,9 @@ const FoodItem = ({
 
   const handleAddToCart = () => {
     if (quantity === 0) {
-      // First time adding - show notes modal
       setNotes(existingNotes);
       setShowNotesModal(true);
     } else {
-      // Already in cart - just add quantity
       addToCart(id, existingNotes);
     }
   };

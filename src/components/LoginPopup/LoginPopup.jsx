@@ -41,32 +41,112 @@ const LoginPopup = ({ setShowLogin }) => {
     setData({ ...data, [e.target.name]: e.target.value });
   };
 
-  // ✅ Submit handler
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      if (mode === "signup") {
-        const res = await axios.post(`${url}/api/user/register`, data);
-        if (res.data.success) {
-          toast.success("Registration successful! Please login now.");
-          setMode("login");
+  const onLogin = async (event) => {
+    event.preventDefault();
+    let newUrl = url;
+    let requestData = { ...data };
+    
+    if (userType === "admin") {
+      if (currentState === "Login") {
+        if (!data.userId || !data.password) {
+          toast.error("Please fill in all required fields.");
+          return;
         }
+        newUrl += "/api/admin/login";
+        requestData = {
+          userId: data.userId.trim(),
+          password: data.password
+        };
       } else {
-        const res = await axios.post(`${url}/api/user/login`, {
-          email: data.email,
-          password: data.password,
-        });
-        if (res.data.success) {
-          toast.success("Login successful!");
-          localStorage.setItem("token", res.data.token);
-          setToken(res.data.token);
-          setUser(res.data.user);
-          // ✅ Close popup after login
-          setShowLogin(false);
+        if (!data.username || !data.userId || !data.password) {
+          toast.error("Please fill in all required fields.");
+          return;
         }
+        newUrl += "/api/admin/register";
+        requestData = {
+          name: data.username.trim(),
+          userId: data.userId.trim(),
+          password: data.password
+        };
+      }
+    } else {
+      if (currentState === "Login") {
+        if (!data.email || !data.password) {
+          toast.error("Please fill in all required fields.");
+          return;
+        }
+        newUrl += "/api/user/login";
+        requestData = {
+          email: data.email.trim(),
+          password: data.password
+        };
+      } else {
+        if (!data.username || !data.email || !data.password) {
+          toast.error("Please fill in all required fields.");
+          return;
+        }
+        newUrl += "/api/user/register";
+        requestData = {
+          name: data.username.trim(),
+          email: data.email.trim(),
+          password: data.password
+        };
+      }
+    }
+    
+    try {
+      const response = await axios.post(newUrl, requestData, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.data.success) {
+        setToken(response.data.token);
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("userType", userType);
+        setContextUserType(userType);
+        toast.success(`${userType === "admin" ? "Admin" : "User"} Login Successfully`);
+        setShowLogin(false);
+      } else {
+        toast.error(response.data.message || "Login failed. Please try again.");
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Something went wrong!");
+      console.error("Login/Register error:", error);
+      console.error("Request URL:", newUrl);
+      console.error("Request Data:", requestData);
+      console.error("Response:", error.response?.data);
+      
+      if (error.response) {
+        const status = error.response.status;
+        const responseData = error.response.data;
+        
+        switch (status) {
+          case 400:
+            toast.error(responseData?.message || "Invalid request. Please check your input.");
+            break;
+          case 401:
+            toast.error(responseData?.message || "Invalid email or password.");
+            break;
+          case 404:
+            toast.error(responseData?.message || "Endpoint not found. Please contact support.");
+            break;
+          case 500:
+            toast.error(responseData?.message || "Server error. The backend service may be experiencing issues. Please try again later.");
+            console.error("Server error details:", responseData);
+            break;
+          case 502:
+          case 503:
+            toast.error("Service temporarily unavailable. Please try again later.");
+            break;
+          default:
+            toast.error(responseData?.message || `Error ${status}: Something went wrong. Please try again.`);
+        }
+      } else if (error.request) {
+        toast.error("Network error. Unable to reach the server. Please check your connection.");
+      } else {
+        toast.error(error.message || "An unexpected error occurred. Please try again.");
+      }
     }
   };
 
@@ -138,6 +218,106 @@ const LoginPopup = ({ setShowLogin }) => {
 
         <div className="divider">or</div>
 
+        <div className="login-popup-inputs">
+          {userType === "admin" ? (
+            <>
+              {currentState === "Login" ? (
+                <>
+                  <input
+                    name="userId"
+                    onChange={onChangeHandler}
+                    value={data.userId}
+                    type="text"
+                    placeholder="User ID"
+                    required
+                  />
+                  <input
+                    name="password"
+                    onChange={onChangeHandler}
+                    value={data.password}
+                    type="password"
+                    placeholder="Password"
+                    required
+                  />
+                </>
+              ) : (
+                <>
+                  <input
+                    name="username"
+                    onChange={onChangeHandler}
+                    value={data.username}
+                    type="text"
+                    placeholder="Username"
+                    required
+                  />
+                  <input
+                    name="userId"
+                    onChange={onChangeHandler}
+                    value={data.userId}
+                    type="text"
+                    placeholder="User ID"
+                    required
+                  />
+                  <input
+                    name="password"
+                    onChange={onChangeHandler}
+                    value={data.password}
+                    type="password"
+                    placeholder="Password"
+                    required
+                  />
+                </>
+              )}
+            </>
+          ) : (
+            <>
+              {currentState === "Login" ? (
+                <>
+                  <input
+                    name="email"
+                    onChange={onChangeHandler}
+                    value={data.email}
+                    type="email"
+                    placeholder="Your email"
+                    required
+                  />
+                  <input
+                    name="password"
+                    onChange={onChangeHandler}
+                    value={data.password}
+                    type="password"
+                    placeholder="Your password"
+                    required
+                  />
+                </>
+              ) : (
+                <>
+                  <input
+                    name="username"
+                    onChange={onChangeHandler}
+                    value={data.username}
+                    type="text"
+                    placeholder="Username"
+                    required
+                  />
+                  <input
+                    name="email"
+                    onChange={onChangeHandler}
+                    value={data.email}
+                    type="email"
+                    placeholder="Your email"
+                    required
+                  />
+                  <input
+                    name="password"
+                    onChange={onChangeHandler}
+                    value={data.password}
+                    type="password"
+                    placeholder="Your password"
+                    required
+                  />
+                </>
+              )}
         <button onClick={handleGoogleLogin} className="google-btn">
           <GoogleIcon /> Continue with Google
         </button>

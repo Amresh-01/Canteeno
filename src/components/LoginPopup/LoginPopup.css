@@ -118,6 +118,10 @@
   transition: all 0.2s ease;
 }
 
+.login-popup-user-type button:nth-child(2).active{
+    border-color: #2563eb;
+    background-color: #2563eb;
+    color: white;
 .google-btn:hover {
   border-color: #d96f32;
   color: #d96f32;
@@ -131,6 +135,8 @@
   position: relative;
 }
 
+.login-popup-container button.admin-login-btn{
+    background-color: #2563eb;
 .divider::before,
 .divider::after {
   content: "";
