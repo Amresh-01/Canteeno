@@ -72,9 +72,7 @@ const CartItemRow = ({ item, quantity, notes, updateNotes, removeFromCart }) => 
             </div>
           )}
         </div>
-        <p onClick={removeFromCart} className="cross">
-          x
-        </p>
+        <p onClick={() => removeItemCompletely(item._id)} className="cross">x</p>
       </div>
       <hr />
     </div>
