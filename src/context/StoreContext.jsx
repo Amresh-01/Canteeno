@@ -1,11 +1,11 @@
-import axios from "axios";
 import { createContext, useEffect, useState } from "react";
-import { toast } from "react-toastify";
-import { food_list as localFoodList } from "../assets/frontend_assets/assets";
+import axios from "axios";
 
 export const StoreContext = createContext(null);
 
 const StoreContextProvider = (props) => {
+  const url = "https://ajay-cafe-1.onrender.com";
+  const [foodList, setFoodList] = useState([]);
   const [cartItems, setCartItems] = useState({});
   const url = "https://ajay-cafe-1.onrender.com";
   const [token, setToken] = useState("");
@@ -27,59 +27,32 @@ const StoreContextProvider = (props) => {
     if (typeof cartItems[itemId] === "number") {
       return "";
     }
-    return cartItems[itemId].notes || "";
   };
 
-  // Helper function to update cart notes
-  const updateCartNotes = (itemId, notes) => {
-    setCartItems((prev) => {
-      const currentItem = prev[itemId];
-      if (typeof currentItem === "number") {
-        // Convert old format to new format
-        return { ...prev, [itemId]: { quantity: currentItem, notes: notes } };
-      }
-      return { ...prev, [itemId]: { ...currentItem, notes: notes } };
-    });
-  };
+  useEffect(() => {
+    fetchFoodList();
+  }, []);
 
-  const addToCart = async (itemId, notes = "") => {
+  // --- Cart Management Functions ---
+
+  const addToCart = (itemId, notes) => {
     setCartItems((prev) => {
-      const currentItem = prev[itemId];
-      if (!currentItem) {
-        return { ...prev, [itemId]: { quantity: 1, notes: notes } };
-      } else if (typeof currentItem === "number") {
-        // Convert old format to new format
-        return {
-          ...prev,
-          [itemId]: { quantity: currentItem + 1, notes: notes || "" },
-        };
+      const item = prev[itemId];
+      if (!item) {
+        return { ...prev, [itemId]: { quantity: 1, notes: notes || "" } };
       } else {
-        // If adding more, keep existing notes unless new notes provided
-        const existingNotes = currentItem.notes || "";
         return {
           ...prev,
           [itemId]: {
-            quantity: currentItem.quantity + 1,
-            notes: notes || existingNotes,
+            quantity: item.quantity + 1,
+            notes: notes !== undefined ? notes : item.notes,
           },
         };
       }
     });
-    if (token) {
-      const response = await axios.post(
-        url + "/api/cart/add",
-        { itemId },
-        { headers: { token } }
-      );
-      if (response.data.success) {
-        toast.success("item Added to Cart");
-      } else {
-        toast.error("Something went wrong");
-      }
-    }
   };
 
-  const removeFromCart = async (itemId) => {
+  const removeFromCart = (itemId) => {
     setCartItems((prev) => {
       const currentItem = prev[itemId];
       if (!currentItem) return prev;
@@ -93,13 +66,9 @@ const StoreContextProvider = (props) => {
         }
         return { ...prev, [itemId]: newQuantity };
       } else {
-        // New format
-        const newQuantity = currentItem.quantity - 1;
-        if (newQuantity <= 0) {
-          const { [itemId]: removed, ...rest } = prev;
-          return rest;
-        }
-        return { ...prev, [itemId]: { ...currentItem, quantity: newQuantity } };
+        const newCart = { ...prev };
+        delete newCart[itemId];
+        return newCart;
       }
     });
     if (token) {
@@ -118,22 +87,26 @@ const StoreContextProvider = (props) => {
 
   const getTotalCartAmount = () => {
     let totalAmount = 0;
-    for (const item in cartItems) {
-      const quantity = getCartQuantity(item);
-      if (quantity > 0) {
-        let itemInfo = food_list.find((product) => product._id === item);
+    for (const itemId in cartItems) {
+      if (cartItems.hasOwnProperty(itemId)) {
+        const itemInfo = foodList.find((product) => product._id === itemId);
         if (itemInfo) {
-          totalAmount += itemInfo.price * quantity;
+          totalAmount += itemInfo.price * cartItems[itemId].quantity;
         }
       }
     }
     return totalAmount;
   };
 
+  // --- THE NEW FUNCTION ---
   const getTotalCartItems = () => {
     let totalItems = 0;
-    for (const item in cartItems) {
-      totalItems += getCartQuantity(item);
+    // Loop over all items in the cart
+    for (const itemId in cartItems) {
+      if (cartItems.hasOwnProperty(itemId)) {
+        // Add the quantity of each item to the total
+        totalItems += cartItems[itemId].quantity;
+      }
     }
     return totalItems;
   };
@@ -176,26 +149,23 @@ const StoreContextProvider = (props) => {
   }, []);
 
   const contextValue = {
-    food_list,
+    url,
+    food_list: foodList,
     cartItems,
     setCartItems,
     addToCart,
     removeFromCart,
-    getTotalCartAmount,
-    getTotalCartItems,
     getCartQuantity,
     getCartNotes,
-    updateCartNotes,
-    url,
-    token,
-    setToken,
-    userType,
-    setUserType,
+    getTotalCartAmount,
+    getTotalCartItems, // <-- Now it is being provided
   };
+
   return (
     <StoreContext.Provider value={contextValue}>
       {props.children}
     </StoreContext.Provider>
   );
 };
+
 export default StoreContextProvider;
