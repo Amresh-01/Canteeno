@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
-  const { url, token, userType } = useContext(StoreContext);
+  const { token, userType } = useContext(StoreContext);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState("all");
@@ -14,8 +14,8 @@ const AdminDashboard = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await axios.get(url + "/api/order/all", {
-        headers: { token },
+      const response = await axios.get("/api/order/all", {
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (response.data.success) {
         const sortedOrders = response.data.data.sort(
@@ -37,9 +37,9 @@ const AdminDashboard = () => {
   const updateOrderStatus = async (orderId, newStatus) => {
     try {
       const response = await axios.post(
-        url + "/api/order/update-status",
+        "/api/order/update-status",
         { orderId, status: newStatus },
-        { headers: { token } }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       if (response.data.success) {
         toast.success(`Order marked as ${newStatus}`);
@@ -61,10 +61,10 @@ const AdminDashboard = () => {
       currentStatus === "pending" || currentStatus === "order placed"
         ? "accepted"
         : currentStatus === "accepted"
-        ? "preparing"
-        : currentStatus === "preparing"
-        ? "ready"
-        : null;
+          ? "preparing"
+          : currentStatus === "preparing"
+            ? "ready"
+            : null;
 
     if (next) updateOrderStatus(orderId, next);
   };
@@ -75,7 +75,7 @@ const AdminDashboard = () => {
       return;
     }
     fetchOrders();
-    const interval = setInterval(fetchOrders, 5000);
+    const interval = setInterval(fetchOrders, 5000); // Auto-refresh orders
     return () => clearInterval(interval);
   }, [token, userType, navigate]);
 
@@ -112,7 +112,7 @@ const AdminDashboard = () => {
                 (o) =>
                   (o.status?.toLowerCase() || "pending") === s ||
                   (s === "pending" &&
-                    o.status?.toLowerCase() === "order placed")
+                    (o.status?.toLowerCase() === "order placed" || o.status?.toLowerCase() === "pending"))
               ).length
             }
             )
@@ -130,7 +130,7 @@ const AdminDashboard = () => {
             />
           ))
         ) : (
-          <p>No orders here.</p>
+          <p>No orders in this category.</p>
         )}
       </div>
     </div>
@@ -148,20 +148,20 @@ const OrderCard = ({ order, onStatusChange }) => {
     isPending
       ? "#ef4444"
       : isAccepted
-      ? "#f59e0b"
-      : isPreparing
-      ? "#3b82f6"
-      : isReady
-      ? "#10b981"
-      : "#6b7280";
+        ? "#f59e0b"
+        : isPreparing
+          ? "#3b82f6"
+          : isReady
+            ? "#10b981"
+            : "#6b7280";
 
   const nextAction = isPending
     ? "Accept Order"
     : isAccepted
-    ? "Mark Preparing"
-    : isPreparing
-    ? "Mark Ready"
-    : null;
+      ? "Mark Preparing"
+      : isPreparing
+        ? "Mark Ready"
+        : null;
 
   return (
     <div
