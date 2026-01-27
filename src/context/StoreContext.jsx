@@ -24,7 +24,9 @@ const StoreContextProvider = ({ children }) => {
     try {
       const parts = jwt.split(".");
       if (parts.length !== 3) return "";
-      const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+      const payload = JSON.parse(
+        atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")),
+      );
       return payload?.id || payload?._id || payload?.userId || "";
     } catch (_e) {
       return "";
@@ -112,7 +114,8 @@ const StoreContextProvider = ({ children }) => {
         const savedRole = localStorage.getItem("userType") || "user";
         setUserType(savedRole);
         // try to restore userId from storage or from token payload
-        const savedUserId = localStorage.getItem("userId") || extractUserIdFromToken(stored);
+        const savedUserId =
+          localStorage.getItem("userId") || extractUserIdFromToken(stored);
         if (savedUserId) {
           setUserId(savedUserId);
           localStorage.setItem("userId", savedUserId);
@@ -138,13 +141,15 @@ const StoreContextProvider = ({ children }) => {
       await axios.post(
         `${url}/api/cart/add`,
         { foodId: id, quantity: 1, userId: userId || undefined },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
     } catch (e) {
       setLocalQty(id, newQty - 1, prevNotes);
       const message =
         e?.response?.data?.message ||
-        (e?.response?.status === 401 ? "Session expired. Please login again." : null) ||
+        (e?.response?.status === 401
+          ? "Session expired. Please login again."
+          : null) ||
         "Failed to add to cart";
       toast.error(message);
     }
@@ -163,7 +168,7 @@ const StoreContextProvider = ({ children }) => {
       await axios.put(
         `${url}/api/cart/updateCart`,
         { foodId: id, quantity: newQty, userId: userId || undefined },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } },
       );
     } catch (e) {
       setLocalQty(id, current, prevNotes);
@@ -214,11 +219,16 @@ const StoreContextProvider = ({ children }) => {
   const getTotalCartAmount = () =>
     Object.keys(cartItems).reduce((sum, id) => {
       const info = foodList.find((f) => f._id === id);
-      return info ? sum + (info.price || 0) * (cartItems[id].quantity || 0) : sum;
+      return info
+        ? sum + (info.price || 0) * (cartItems[id].quantity || 0)
+        : sum;
     }, 0);
 
   const getTotalCartItems = () =>
-    Object.keys(cartItems).reduce((n, id) => n + (cartItems[id].quantity || 0), 0);
+    Object.keys(cartItems).reduce(
+      (n, id) => n + (cartItems[id].quantity || 0),
+      0,
+    );
 
   // ===== Context value =====
   const contextValue = {

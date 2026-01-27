@@ -4,11 +4,18 @@ import { StoreContext } from "../../context/StoreContext";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../../config";
 
 const PlaceOrder = () => {
   const navigate = useNavigate();
-  const { getTotalCartAmount, token, food_list, cartItems, getCartQuantity, getCartNotes } =
-    useContext(StoreContext);
+  const {
+    getTotalCartAmount,
+    token,
+    food_list,
+    cartItems,
+    getCartQuantity,
+    getCartNotes,
+  } = useContext(StoreContext);
 
   const [orderCount, setOrderCount] = useState(0);
   const [orderPlaced, setOrderPlaced] = useState(false);
@@ -16,10 +23,9 @@ const PlaceOrder = () => {
   const [tableNumber, setTableNumber] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cash");
 
-  // ✅ Fetch order history count
   const fetchOrderCount = async () => {
     try {
-      const response = await axios.get("/api/order/allOrders", {
+      const response = await axios.get(`${API_BASE_URL}/api/order/allOrders`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.data.success) setOrderCount(response.data.data.length);
@@ -63,7 +69,7 @@ const PlaceOrder = () => {
         },
         {
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
 
       if (res.data.success) {
@@ -117,7 +123,9 @@ const PlaceOrder = () => {
 
           {orderCount % 6 === 5 && (
             <div className="loyalty-notification">
-              <p>🎉 <strong>You're eligible for a free item!</strong></p>
+              <p>
+                🎉 <strong>You're eligible for a free item!</strong>
+              </p>
             </div>
           )}
 
@@ -147,7 +155,10 @@ const PlaceOrder = () => {
           />
 
           <label>Payment Method</label>
-          <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
+          <select
+            value={paymentMethod}
+            onChange={(e) => setPaymentMethod(e.target.value)}
+          >
             <option value="cash">Cash</option>
             <option value="upi">UPI</option>
           </select>

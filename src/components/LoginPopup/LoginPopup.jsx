@@ -123,7 +123,6 @@ const LoginPopup = ({ setShowLogin }) => {
         </h2>
 
         <form onSubmit={handleSubmit} className="login-form">
-          {/* ADMIN */}
           {loginRole === "admin" ? (
             <>
               <input
@@ -145,7 +144,7 @@ const LoginPopup = ({ setShowLogin }) => {
             </>
           ) : (
             <>
-              {/* USER SIGNUP */}
+              
               {mode === "signup" && (
                 <input
                   type="text"
