@@ -17,19 +17,19 @@ import Verify from "./pages/Verify/Verify";
 import MyOrders from "./pages/MyOrders/MyOrders";
 import AdminDashboard from "./pages/AdminDashboard/AdminDashboard";
 import TrackOrder from "./pages/TrackOrder/TrackOrder";
+import AdminPage from "./pages/AdminDashboard/AdminPage";
+import AdminAnalytics from "./pages/AdminDashboard/AdminAnalytics";
 
 const App = () => {
   const [showLogin, setShowLogin] = useState(false);
-  const { userType, token } = useContext(StoreContext); // userType: "admin" | "customer" | ...
+  const { userType, token } = useContext(StoreContext);
 
-  // -------- Inline Guards (use App scope so we can call setShowLogin) --------
   const CustomerRoute = ({ children }) => {
-    // Not logged in → open login modal and push to home
     if (!token) {
       setShowLogin(true);
       return <Navigate to="/" replace />;
     }
-    // Admin trying to see customer pages → push to admin dashboard
+
     if (userType === "admin") {
       return <Navigate to="/admin/dashboard" replace />;
     }
@@ -106,14 +106,16 @@ const App = () => {
 
           {/* Admin-only */}
           <Route
-            path="/admin/dashboard"
+            path="/admin"
             element={
               <AdminRoute>
-                <AdminDashboard />
+                <AdminPage />
               </AdminRoute>
             }
-          />
-
+          >
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="analytics" element={<AdminAnalytics />} />
+          </Route>
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

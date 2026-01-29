@@ -1,0 +1,12 @@
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #f5f6fa;
+}
+
+.admin-content {
+  margin-left: 260px; /* sidebar width */
+  padding: 30px;
+  width: 100%;
+  overflow-y: auto;
+}
