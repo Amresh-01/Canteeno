@@ -19,7 +19,7 @@ import AdminDashboard from "./pages/AdminDashboard/AdminDashboard";
 import TrackOrder from "./pages/TrackOrder/TrackOrder";
 import AdminPage from "./pages/AdminDashboard/AdminPage";
 import AdminAnalytics from "./pages/AdminDashboard/AdminAnalytics";
-import PWAInstallPrompt from "./components/PWAInstallerPrompt";
+import PWAInstallPrompt from "./components/Pwa/PWAInstallerPrompt.jsx";
 
 const App = () => {
   const [showLogin, setShowLogin] = useState(false);
