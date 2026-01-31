@@ -20,6 +20,7 @@ import TrackOrder from "./pages/TrackOrder/TrackOrder";
 import AdminPage from "./pages/AdminDashboard/AdminPage";
 import AdminAnalytics from "./pages/AdminDashboard/AdminAnalytics";
 import PWAInstallPrompt from "./components/Pwa/PWAInstallerPrompt.jsx";
+import KitchenDashboard from "./pages/Kitchen/KitchenDashboard.jsx";
 
 const App = () => {
   const [showLogin, setShowLogin] = useState(false);
@@ -49,7 +50,6 @@ const App = () => {
     }
     return children;
   };
-  // -------------------------------------------------------------------------
 
   return (
     <>
@@ -116,6 +116,7 @@ const App = () => {
           >
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="analytics" element={<AdminAnalytics />} />
+            <Route path="kitchen" element={<KitchenDashboard />}></Route>
           </Route>
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />

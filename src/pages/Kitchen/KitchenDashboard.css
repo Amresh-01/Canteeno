@@ -1,0 +1,54 @@
+.kds-container {
+  padding: 20px;
+}
+
+.kds-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.kds-card {
+  background: #fff;
+  padding: 16px;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  border-left: 6px solid #d96f32;
+  transition: all 0.3s;
+}
+
+.kds-card.blink {
+  animation: blink 1.4s infinite;
+}
+
+@keyframes blink {
+  0% {
+    background: #fff5e6;
+  }
+  50% {
+    background: #ffe5c2;
+  }
+  100% {
+    background: #fff5e6;
+  }
+}
+
+.kds-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.kds-items p {
+  margin: 6px 0;
+  font-weight: 600;
+}
+
+.kds-select {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px solid #ddd;
+  font-size: 15px;
+}
