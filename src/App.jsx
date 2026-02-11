@@ -116,9 +116,8 @@ const App = () => {
           >
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="analytics" element={<AdminAnalytics />} />
-            <Route path="kitchen" element={<KitchenDashboard />}></Route>
+            <Route path="kitchen" element={<KitchenDashboard />} />
           </Route>
-          {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

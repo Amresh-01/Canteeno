@@ -1,35 +1,26 @@
-import React, { useEffect, useState, useContext } from "react";
-import { io } from "socket.io-client";
+import React, { useContext, useEffect, useState } from "react";
+import "./KitchenDashboard.css";
+import io from "socket.io-client";
 import axios from "axios";
 import { API_BASE_URL } from "../../config";
 import { StoreContext } from "../../context/StoreContext";
-import "./KitchenDashboard.css";
 
 const socket = io(API_BASE_URL);
 
 const KitchenDashboard = () => {
-  const { token } = useContext(StoreContext);
   const [orders, setOrders] = useState([]);
-
-  const fetchKDSOrders = async () => {
-    const res = await axios.get(`${API_BASE_URL}/order/kds`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (res.data.success) setOrders(res.data.data);
-  };
+  const { token } = useContext(StoreContext);
 
   useEffect(() => {
-    fetchKDSOrders();
+    fetchAllOrders();
 
     socket.on("kds-new-order", (order) => {
-      setOrders((prev) => [...prev, order]);
-      // playSound();
+      setOrders((prev) => [order, ...prev]);
     });
 
-    socket.on("kds-status-updated", (updated) => {
+    socket.on("kds-status-updated", (updatedOrder) => {
       setOrders((prev) =>
-        prev.map((o) => (o._id === updated._id ? updated : o)),
+        prev.map((o) => (o._id === updatedOrder._id ? updatedOrder : o)),
       );
     });
 
@@ -39,10 +30,19 @@ const KitchenDashboard = () => {
     };
   }, []);
 
-  // const playSound = () => {
-  //   const audio = new Audio("/notification.mp3");
-  //   audio.play();
-  // };
+  const fetchAllOrders = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/order/allOrders`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.data.success) {
+        setOrders(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    }
+  };
 
   const updateStatus = async (id, status) => {
     await axios.put(
@@ -50,45 +50,63 @@ const KitchenDashboard = () => {
       { status },
       { headers: { Authorization: `Bearer ${token}` } },
     );
+
+    fetchAllOrders(); 
   };
 
   return (
     <div className="kds-container">
-      <h1>👨‍🍳 Kitchen Dashboard</h1>
+      <h1 className="kds-title">👨‍🍳 Kitchen Dashboard</h1>
 
       <div className="kds-grid">
-        {orders.map((order) => (
-          <div
-            key={order._id}
-            className={`kds-card ${order.status === "pending" ? "blink" : ""}`}
-          >
-            <div className="kds-header">
-              <h3>Order #{order._id.slice(-4)}</h3>
-              <p className="time">
-                {new Date(order.createdAt).toLocaleTimeString()}
-              </p>
-            </div>
+        {orders
+          .filter((order) => order.status !== "delivered")
+          .map((order) => (
+            <div key={order._id} className={`kds-card ${order.status}`}>
+              <div className="kds-header">
+                <h3>Order #{order._id.slice(-5)}</h3>
+                <p>Table: {order.tableNumber}</p>
+                <span className="kds-status">{order.status}</span>
+              </div>
 
-            <div className="kds-items">
-              {order.items.map((i, index) => (
-                <p key={index}>
-                  {i.food.name} × {i.quantity}
-                </p>
-              ))}
-            </div>
+              <ul className="kds-items">
+                {order.items.map((i) => (
+                  <li key={i._id}>
+                    {i.quantity}× {i.food?.name} — ₹{i.price}
+                  </li>
+                ))}
+              </ul>
 
-            <select
-              value={order.status}
-              onChange={(e) => updateStatus(order._id, e.target.value)}
-              className="kds-select"
-            >
-              <option value="pending">Pending</option>
-              <option value="preparing">Preparing</option>
-              <option value="ready">Ready</option>
-              <option value="delivered">Delivered</option>
-            </select>
-          </div>
-        ))}
+              <div className="kds-actions">
+                {order.status === "pending" && (
+                  <button
+                    className="btn preparing"
+                    onClick={() => updateStatus(order._id, "preparing")}
+                  >
+                    Start Preparing
+                  </button>
+                )}
+
+                {order.status === "preparing" && (
+                  <button
+                    className="btn ready"
+                    onClick={() => updateStatus(order._id, "ready")}
+                  >
+                    Mark Ready
+                  </button>
+                )}
+
+                {order.status === "ready" && (
+                  <button
+                    className="btn served"
+                    onClick={() => updateStatus(order._id, "delivered")}
+                  >
+                    Mark Delivered
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
       </div>
     </div>
   );

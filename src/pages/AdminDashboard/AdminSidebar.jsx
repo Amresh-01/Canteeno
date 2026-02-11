@@ -17,6 +17,9 @@ const AdminSidebar = () => {
           <NavLink to="/admin/analytics">📊 Analytics</NavLink>
         </li>
         <li>
+          <NavLink to="/admin/kitchen">Kitchen Dashboard</NavLink>
+        </li>
+        <li>
           <NavLink to="/admin/menu">🍔 Manage Menu</NavLink>
         </li>
         <li>
