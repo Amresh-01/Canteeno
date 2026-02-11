@@ -1,1 +1,1 @@
-export const API_BASE_URL = `https://ajay-cafe-1.onrender.com/api`;
+export const API_BASE_URL = `hhttps://canteeno-peach.vercel.app/api`;
